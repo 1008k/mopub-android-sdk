@@ -625,7 +625,7 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
     }
 
     void forceRefresh() {
-        invalidateAdapter();
+        //invalidateAdapter();
         setNotLoading();
         loadAd();
     }
@@ -787,7 +787,7 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
             return;
         }
 
-        invalidateAdapter();
+        //invalidateAdapter();
 
         MoPubLog.log(CUSTOM, "Loading ad adapter.");
 
