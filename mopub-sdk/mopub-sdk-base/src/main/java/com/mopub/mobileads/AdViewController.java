@@ -131,6 +131,7 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
     private boolean mIsTesting;
     private boolean mAdWasLoaded;
     private AdAdapter mAdAdapter;
+    private AdAdapter mAdAdapterDeferred;
     @Nullable
     private String mAdUnitId;
     @Nullable
@@ -576,6 +577,12 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
         // thanks to some persistent references in WebViewCore. We manually release some resources
         // to compensate for this "leak".
         invalidateAdapter();
+        if(mAdAdapterDeferred != null) {
+            if(!mAdAdapterDeferred.isInvalidated()) {
+                mAdAdapterDeferred.invalidate();
+            }
+            mAdAdapterDeferred = null;
+        }
         mMoPubAd = null;
         mContext = null;
         mUrlGenerator = null;
@@ -625,7 +632,7 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
     }
 
     void forceRefresh() {
-        //invalidateAdapter();
+        invalidateAdapter();
         setNotLoading();
         loadAd();
     }
@@ -633,7 +640,9 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
     protected void invalidateAdapter() {
         final AdAdapter adAdapter = getAdAdapter();
         if (adAdapter != null) {
-            adAdapter.invalidate();
+            if(mAdAdapterDeferred == null) {
+                mAdAdapterDeferred = adAdapter;
+            }
             mAdAdapter = null;
         }
     }
@@ -732,6 +741,12 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    if (mAdAdapterDeferred != null) {
+                        if(!mAdAdapterDeferred.isInvalidated()) {
+                            mAdAdapterDeferred.invalidate();
+                        }
+                        mAdAdapterDeferred = null;
+                    }
                     ((MoPubView) moPubAd).removeAllViews();
                     ((MoPubView) moPubAd).addView(view, getAdLayoutParams(view));
                 }
@@ -787,7 +802,7 @@ public class AdViewController implements AdLifecycleListener.LoadListener, AdLif
             return;
         }
 
-        //invalidateAdapter();
+        invalidateAdapter();
 
         MoPubLog.log(CUSTOM, "Loading ad adapter.");
 
